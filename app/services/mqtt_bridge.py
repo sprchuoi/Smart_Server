@@ -136,10 +136,17 @@ class MQTTBridge:
         """Handle sensor data update."""
         sensor_type = "/".join(sensor_path) if sensor_path else "general"
         
+        # Validate and convert sensor value
+        try:
+            value = float(data.get("value", 0))
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Invalid sensor value for {device_id}/{sensor_type}: {data.get('value')}")
+            return
+        
         sensor_data = SensorData(
             device_id=device_id,
             sensor_type=sensor_type,
-            value=float(data.get("value", 0)),
+            value=value,
             unit=data.get("unit", ""),
             timestamp=datetime.utcnow()
         )

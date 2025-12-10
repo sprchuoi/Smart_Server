@@ -89,8 +89,17 @@ class OTAService:
     def _is_newer_version(self, latest: str, current: str) -> bool:
         """Compare version strings (simple implementation)."""
         try:
-            latest_parts = [int(x) for x in latest.split('.')]
-            current_parts = [int(x) for x in current.split('.')]
+            # Remove any pre-release or build metadata (e.g., -alpha.1, +build123)
+            def clean_version(v):
+                # Split on '-' or '+' and take the first part
+                v = v.split('-')[0].split('+')[0]
+                return v
+            
+            latest_clean = clean_version(latest)
+            current_clean = clean_version(current)
+            
+            latest_parts = [int(x) for x in latest_clean.split('.')]
+            current_parts = [int(x) for x in current_clean.split('.')]
             
             # Pad shorter version with zeros
             max_len = max(len(latest_parts), len(current_parts))
@@ -98,7 +107,8 @@ class OTAService:
             current_parts.extend([0] * (max_len - len(current_parts)))
             
             return latest_parts > current_parts
-        except Exception:
+        except (ValueError, IndexError) as e:
+            logger.warning(f"Error comparing versions {latest} and {current}: {e}")
             return False
     
     def get_firmware_path(self, filename: str = "firmware.bin") -> Optional[Path]:

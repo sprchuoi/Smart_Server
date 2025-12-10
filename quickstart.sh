@@ -63,8 +63,12 @@ mkdir -p ota reports logs models
 # Check if Mosquitto is running
 if command -v mosquitto &> /dev/null; then
     if ! pgrep -x "mosquitto" > /dev/null; then
-        echo "Starting Mosquitto MQTT broker..."
-        mosquitto -c mosquitto/config/mosquitto.conf -d 2>/dev/null || echo "Warning: Could not start Mosquitto. You may need to install it: sudo apt-get install mosquitto"
+        if [ -f "mosquitto/config/mosquitto.conf" ]; then
+            echo "Starting Mosquitto MQTT broker..."
+            mosquitto -c mosquitto/config/mosquitto.conf -d 2>/dev/null || echo "Warning: Could not start Mosquitto. You may need to install it: sudo apt-get install mosquitto"
+        else
+            echo "Warning: Mosquitto config file not found. Skipping broker start."
+        fi
     else
         echo "Mosquitto is already running."
     fi
