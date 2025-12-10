@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: smart_server_mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+
+  smart_server:
+    build: .
+    container_name: smart_server_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - ./ota:/app/ota
+      - ./reports:/app/reports
+      - ./models:/app/models
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
