@@ -12,6 +12,8 @@ services:
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
     restart: unless-stopped
+    networks:
+      - smart_server_network
 
   smart_server:
     build: .
@@ -19,18 +21,26 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./app:/app
+      - ./app:/app/app
       - ./ota:/app/ota
       - ./reports:/app/reports
       - ./models:/app/models
       - ./logs:/app/logs
     env_file:
       - .env
+    environment:
+      - MQTT_BROKER_HOST=mosquitto
     depends_on:
       - mosquitto
     restart: unless-stopped
+    networks:
+      - smart_server_network
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   mosquitto_data:
   mosquitto_log:
+
+networks:
+  smart_server_network:
+    driver: bridge

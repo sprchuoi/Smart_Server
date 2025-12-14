@@ -118,40 +118,80 @@ class MQTTBridge:
             device.last_seen = datetime.utcnow()
             if "firmware_version" in data:
                 device.firmware_version = data["firmware_version"]
+            # Update ESP32-specific fields
+            if "ip" in data:
+                device.device_metadata = device.device_metadata or {}
+                device.device_metadata["ip"] = data["ip"]
+            if "rssi" in data:
+                device.device_metadata = device.device_metadata or {}
+                device.device_metadata["rssi"] = data["rssi"]
             logger.info(f"Updated device {device_id} status: {device.status}")
         else:
-            # Create new device
+            # Create new device - support both 'type' and 'device_type' fields
+            device_type = data.get("device_type") or data.get("type", "unknown")
+            device_name = data.get("name", device_id)
+            
+            metadata = {}
+            if "ip" in data:
+                metadata["ip"] = data["ip"]
+            if "rssi" in data:
+                metadata["rssi"] = data["rssi"]
+            
             device = Device(
                 device_id=device_id,
-                name=data.get("name", device_id),
-                device_type=data.get("type", "unknown"),
+                name=device_name,
+                device_type=device_type,
                 status=data.get("status", "online"),
                 firmware_version=data.get("firmware_version"),
+                device_metadata=metadata if metadata else None,
                 last_seen=datetime.utcnow()
             )
             session.add(device)
-            logger.info(f"Registered new device: {device_id}")
+            logger.info(f"Registered new device: {device_id} (type: {device_type})")
     
     async def _handle_sensor_data(self, session, device_id: str, sensor_path: list, data: dict):
-        """Handle sensor data update."""
-        sensor_type = "/".join(sensor_path) if sensor_path else "general"
+        """Handle sensor data update - supports multiple sensor values in one message."""
+        sensor_type = "/".join(sensor_path) if sensor_path else "data"
         
-        # Validate and convert sensor value
-        try:
-            value = float(data.get("value", 0))
-        except (ValueError, TypeError) as e:
-            logger.warning(f"Invalid sensor value for {device_id}/{sensor_type}: {data.get('value')}")
-            return
+        # Handle single value format
+        if "value" in data:
+            try:
+                value = float(data.get("value", 0))
+                sensor_data = SensorData(
+                    device_id=device_id,
+                    sensor_type=sensor_type,
+                    value=value,
+                    unit=data.get("unit", ""),
+                    timestamp=datetime.utcnow()
+                )
+                session.add(sensor_data)
+                logger.debug(f"Stored sensor data: {device_id}/{sensor_type} = {value}")
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Invalid sensor value for {device_id}/{sensor_type}: {data.get('value')}")
         
-        sensor_data = SensorData(
-            device_id=device_id,
-            sensor_type=sensor_type,
-            value=value,
-            unit=data.get("unit", ""),
-            timestamp=datetime.utcnow()
-        )
-        session.add(sensor_data)
-        logger.debug(f"Recorded sensor data for {device_id}/{sensor_type}: {sensor_data.value}")
+        # Handle multiple values format (e.g., temperature and humidity in one message)
+        else:
+            # Extract numeric fields from data (ESP32 format)
+            sensor_fields = {}
+            for key, val in data.items():
+                if key in ["device_id", "timestamp"]:
+                    continue
+                try:
+                    sensor_fields[key] = float(val)
+                except (ValueError, TypeError):
+                    continue
+            
+            # Store each sensor value
+            for sensor_name, value in sensor_fields.items():
+                sensor_data = SensorData(
+                    device_id=device_id,
+                    sensor_type=f"{sensor_type}/{sensor_name}" if sensor_type != "data" else sensor_name,
+                    value=value,
+                    unit="",
+                    timestamp=datetime.utcnow()
+                )
+                session.add(sensor_data)
+                logger.debug(f"Stored sensor data: {device_id}/{sensor_name} = {value}")
     
     async def _handle_device_response(self, session, device_id: str, data: dict):
         """Handle device command response."""

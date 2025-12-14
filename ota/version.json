@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "build": 1,
+  "release_date": "2025-12-14T09:50:10.273046",
+  "changelog": "Initial release",
+  "firmware_url": "/api/ota/firmware/firmware.bin",
+  "checksum": "",
+  "size_bytes": 0,
+  "min_required_version": "0.0.0"
+}

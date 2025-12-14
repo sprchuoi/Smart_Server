@@ -1,7 +1,7 @@
 import logging
 import sys
 from pathlib import Path
-from pythongjsonlogger import jsonlogger
+from pythonjsonlogger import jsonlogger
 
 from app.core.config import settings
 

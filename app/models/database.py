@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, Text, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 
@@ -15,6 +15,7 @@ class Device(Base):
     device_type = Column(String(50), nullable=False)
     status = Column(String(20), default="offline")
     firmware_version = Column(String(20))
+    device_metadata = Column(JSON)  # Store IP, RSSI, and other ESP32-specific data
     last_seen = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

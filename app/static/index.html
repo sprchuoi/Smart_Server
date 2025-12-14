@@ -211,6 +211,35 @@
             </div>
         </header>
         
+        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
+            <h2 style="color: white;">🔌 Connection Information</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.9em;">
+                <div>
+                    <strong>Server IP:</strong><br>
+                    <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px;">192.168.2.1</code>
+                </div>
+                <div>
+                    <strong>MQTT Broker:</strong><br>
+                    <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px;">192.168.2.1:1883</code>
+                </div>
+                <div>
+                    <strong>HTTP API:</strong><br>
+                    <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px;">http://192.168.2.1:8000</code>
+                </div>
+                <div>
+                    <strong>WebSocket:</strong><br>
+                    <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px;">ws://192.168.2.1:8000/ws</code>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3);">
+                <strong>📱 ESP32 Configuration Example:</strong>
+                <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; overflow-x: auto; margin-top: 8px; font-size: 0.85em;"><code>const char* mqtt_server = "192.168.2.1";
+const int mqtt_port = 1883;
+const char* client_id = "esp32_001";  // Unique per device
+const char* device_id = "esp32_001";   // Unique per device</code></pre>
+            </div>
+        </div>
+        
         <div class="grid">
             <div class="card">
                 <h2>📱 Devices</h2>
